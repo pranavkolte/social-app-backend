@@ -6,7 +6,7 @@ from sqlalchemy import (
     Integer,
     DateTime,
     or_,
-    ForeignKey,
+    ForeignKey, Text, Boolean,
 )
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy.exc import SQLAlchemyError
@@ -303,3 +303,65 @@ class Follow(db.Base):
             except SQLAlchemyError:
                 session.rollback()
                 return False
+
+class Comment(db.Base):
+    __tablename__ = "comment"
+
+    comment_id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(
+        CHAR(36),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    post_id = Column(
+        CHAR(36),
+        ForeignKey("posts.post_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=func.now(), index=True)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    is_active = Column(Boolean, default=True, nullable=False)
+    like_count = Column(Integer, default=0, nullable=False)
+
+    def to_dict(self):
+        return {
+            "comment_id": self.comment_id,
+            "user_id": self.user_id,
+            "post_id": self.post_id,
+            "content": self.content,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "is_active": self.is_active,
+            "like_count": self.like_count,
+        }
+
+
+    def save(self):
+        with db.session() as session:
+            try:
+                session.add(self)
+                session.commit()
+                session.refresh(self)
+                return self
+            except SQLAlchemyError:
+                session.rollback()
+                return None
+
+    @classmethod
+    def get_comments(cls, post_id: str, limit: int = 10, offset: int = 0):
+        with db.session() as session:
+            try:
+                comments = (
+                    session.query(cls)
+                    .filter_by(post_id=post_id, is_active=True)
+                    .order_by(cls.created_at.desc())
+                    .limit(limit)
+                    .offset(offset)
+                    .all()
+                )
+                return comments
+            except SQLAlchemyError:
+                return []

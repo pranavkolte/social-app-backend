@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import Response
 from starlette import status
 
-from app.database.models import Posts, Users, Like
+from app.database.models import Posts, Users, Like, Comment
 from app.schema import CreatePostRequest
 from app.services.auth import AuthService
 
@@ -156,5 +156,64 @@ async def get_post_likes(
 
     return Response(
         content={"msg": "SUCCESS", "data": users_data},
+        status_code=status.HTTP_200_OK
+    )
+
+router = APIRouter()
+
+@router.post("/{post_id}/comment", response_model=dict)
+async def comment_on_post(
+    post_id: str,
+    content: str,
+    current_user: Users = Depends(AuthService.get_current_user)
+):
+    # 11.	Comment on a post.
+    post: Posts = Posts.get_post_by_id(post_id=post_id)
+    if not post:
+        return Response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"msg":"Post not found"}
+        )
+
+    new_comment: Comment = Comment(
+        user_id=str(current_user.user_id),
+        post_id=post_id,
+        content=content
+    ).save()
+
+    if new_comment:
+        return Response(
+            content={"msg": "COMMENTED", "data": new_comment.to_dict()},
+            status_code=status.HTTP_201_CREATED
+        )
+
+    return Response(
+        content={"msg": "FAILED"},
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+@router.get("/{post_id}/comments", response_model=dict)
+async def get_post_comments(
+    post_id: str,
+    current_user: Users = Depends(AuthService.get_current_user)
+):
+    # 12.	Get all users and their comments on a particular post.
+    post = Posts.get_post_by_id(post_id=post_id)
+    if not post:
+        return Response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"msg":"Post not found"}
+        )
+
+    comments = Comment.get_comments(post_id=post_id)
+    if not comments:
+        return Response(
+            content={"msg": "No comments found for this post"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    comments_data = [comment.to_dict() for comment in comments]
+    return Response(
+        content={"msg": "SUCCESS", "data": comments_data},
         status_code=status.HTTP_200_OK
     )
