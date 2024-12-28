@@ -8,7 +8,7 @@ class Token(BaseModel):
 
 class CreateUserRequest(BaseModel):
     username: str = ""
-    full_name: str
+    name: str
     email: EmailStr
     password: str
 

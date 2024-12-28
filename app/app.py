@@ -8,7 +8,7 @@ from app.settings import settings
 
 
 def handle_startup():
-    db.create_engine(DB_URI=settings.DB_URI)
+    db.create_engine()
     db.create_session()
 
 def handle_shutdown():
@@ -27,7 +27,7 @@ app = FastAPI(
 )
 
 @app.get("/", tags=["Health Check"])
-def index():
+async def index():
     return {"message": f"social app backend  is running"}
 
 
@@ -46,3 +46,8 @@ app.include_router(
 app.include_router(
     prefix="/api/v1/feed", router=feed_router, tags=["Posts"]
 )
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.app:app", host="0.0.0.0", port=8000, reload=True)
+    

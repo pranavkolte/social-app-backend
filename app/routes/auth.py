@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
-from starlette.responses import Response
+from starlette.responses import Response, JSONResponse
 
 from app.database.models import Users
 from app.schema import Token, CreateUserRequest
@@ -47,7 +47,7 @@ async def register(request: CreateUserRequest):
     user: Users = user.save()
 
     if user:
-        return Response(
+        return JSONResponse(
             content={
                 "msg": "SUCCESS",
                 "data": user.to_dict(),
@@ -55,7 +55,7 @@ async def register(request: CreateUserRequest):
             status_code=status.HTTP_201_CREATED,
         )
 
-    return Response(
+    return JSONResponse(
         content={
             "msg": "FAILED",
         },
