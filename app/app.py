@@ -26,14 +26,10 @@ app = FastAPI(
 )
 
 """"
-GET specific post : GET /post/{post_id}
-Like POST : POST /post/like
-get like: GET /post/like 
 comment on post : POST /post/{post_id}/comment
 GET comments : GET /comment/{comment_id}
 
 GET FEED : GET /feed: (pagination,the users they follow,Latest post on top) 
-
 
 Optional ------------------------
 search user : GET /search  --- required 

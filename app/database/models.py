@@ -139,6 +139,85 @@ class Posts(db.Base):
             except Exception as e:
                 return None
 
+    @classmethod
+    def get_post_by_id(cls, post_id: str):
+        with db.session() as session:
+            try:
+                post = session.query(cls).filter_by(post_id=post_id).first()
+                return post
+            except SQLAlchemyError:
+                return None
+
+
+class Like(db.Base):
+    __tablename__ = "like"
+
+    like_id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(
+        CHAR(36),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    post_id = Column(
+        CHAR(36),
+        ForeignKey("posts.post_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_at = Column(DateTime, default=func.now())
+
+    @classmethod
+    def get_likes_for_post(cls, post_id: str, limit: int = 10, offset: int = 0):
+        with db.session() as session:
+            try:
+                likes = (
+                    session.query(cls)
+                    .filter_by(post_id=post_id)
+                    .order_by(cls.created_at.desc())
+                    .limit(limit)
+                    .offset(offset)
+                    .all()
+                )
+                return likes
+            except SQLAlchemyError:
+                return []
+
+    @classmethod
+    def get_like_count(cls, post_id: str, user_id: str = None):
+        with db.session() as session:
+            try:
+                count = session.query(cls).filter_by(post_id=post_id, user_id=user_id).count()
+                return count
+            except SQLAlchemyError:
+                return 0
+
+    def save(self):
+        with db.session() as session:
+            try:
+                session.add(self)
+                session.commit()
+                session.refresh(self)
+                return self
+            except SQLAlchemyError:
+                session.rollback()
+                return None
+
+    @classmethod
+    def delete(cls, post_id: str, user_id: str):
+        with db.session() as session:
+            try:
+                like = session.query(cls).filter_by(post_id=post_id, user_id=user_id).first()
+                if not like:
+                    return False
+
+                session.delete(like)
+                session.commit()
+                return True
+            except SQLAlchemyError:
+                session.rollback()
+                return False
+
 
 class Follow(db.Base):
     __tablename__ = "follow"
