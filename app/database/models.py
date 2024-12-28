@@ -122,6 +122,22 @@ class Posts(db.Base):
                 return None
 
     @classmethod
+    def get_posts_by_user_list(cls, user_ids: list, limit: int = 10, offset: int = 0):
+        with db.session() as session:
+            try:
+                posts = (
+                    session.query(cls)
+                    .filter(cls.publisher_user_id.in_(user_ids))
+                    .order_by(cls.datetime_posted.desc())
+                    .limit(limit)
+                    .offset(offset)
+                    .all()
+                )
+                return posts
+            except SQLAlchemyError:
+                return None
+
+    @classmethod
     def get_post(cls, filter: dict, use_or: bool = False):
         with db.session() as session:
             try:
@@ -271,6 +287,15 @@ class Follow(db.Base):
                 else:
                     follow = session.query(cls).filter_by(**filter).first()
                 return follow
+            except SQLAlchemyError:
+                return None
+
+    @classmethod
+    def get_following(cls, user_id: str):
+        with db.session() as session:
+            try:
+                following = session.query(cls).filter_by(follower_id=user_id).all()
+                return following
             except SQLAlchemyError:
                 return None
 
