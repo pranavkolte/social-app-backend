@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.openapi.models import Response
 from starlette import status
 from app.database.models import Users, Follow, Posts
@@ -68,5 +68,26 @@ async def get_my_profile(current_user: Users = Depends(AuthService.get_current_u
             "msg": "SUCCESS",
             "data": posts_data
         },
+        status_code=status.HTTP_200_OK
+    )
+
+@router.get("/search/{search_string}", response_model=dict)
+async def search_users(
+    search_string: str,
+    current_user: Users = Depends(AuthService.get_current_user),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+):
+    # -	Search for a user with user handle (username). Even better if substring search is supported
+    users = Users.search_by_name_or_username(search_string=search_string, limit=limit, offset=offset)
+    if not users:
+        return Response(
+            content={"msg": "No users found"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    users_data = [user.to_dict() for user in users]
+    return Response(
+        content={"msg": "SUCCESS", "data": users_data},
         status_code=status.HTTP_200_OK
     )

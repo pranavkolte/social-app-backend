@@ -75,6 +75,27 @@ class Users(db.Base):
             except Exception as e:
                 return None
 
+    @classmethod
+    def search_by_name_or_username(cls, search_string: str, limit: int = 10, offset: int = 0):
+        with db.session() as session:
+            try:
+                search_pattern = f"%{search_string}%"
+                users = (
+                    session.query(cls)
+                    .filter(
+                        or_(
+                            cls.name.ilike(search_pattern),
+                            cls.username.ilike(search_pattern)
+                        )
+                    )
+                    .limit(limit)
+                    .offset(offset)
+                    .all()
+                )
+                return users
+            except SQLAlchemyError:
+                return None
+
 
 class Posts(db.Base):
     __tablename__ = 'posts'

@@ -26,13 +26,6 @@ app = FastAPI(
     on_shutdown=[handle_shutdown],
 )
 
-""""
-GET FEED : GET /feed: (pagination,the users they follow,Latest post on top) 
-
-Optional ------------------------
-search user : GET /search  --- required 
-"""
-
 @app.get("/", tags=["Health Check"])
 def index():
     return {"message": f"social app backend  is running"}
