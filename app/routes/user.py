@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.openapi.models import Response
 from starlette import status
-from app.database.models import Users, Follow
+from app.database.models import Users, Follow, Posts
 from app.services.auth import AuthService
 
 router = APIRouter()
@@ -51,3 +51,22 @@ async def follow_user(
             content={"msg": "FAILED"},
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@router.get("/me")
+async def get_my_profile(current_user: Users = Depends(AuthService.get_current_user)):
+    # 6.	Get contents posted by the logged in user.
+    posts = Posts.get_posts_by_user(user_id=str(current_user.user_id))
+    if posts is None:
+        return Response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Failed to retrieve posts"
+        )
+
+    posts_data = [post.to_dict() for post in posts]
+    return Response(
+        content={
+            "msg": "SUCCESS",
+            "data": posts_data
+        },
+        status_code=status.HTTP_200_OK
+    )

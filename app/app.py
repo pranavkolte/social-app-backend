@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.routes.auth import router as auth_router
 from app.routes.user import router as user_router
+from app.routes.post import router as post_router
 from app.database import db
 from app.settings import settings
 
@@ -25,12 +26,6 @@ app = FastAPI(
 )
 
 """"
-
-Login : POST user/login
-GET USER : GET /user/{user_id}
-follow : POST /user/{user_id}/follow     follow unfollow user 
-
-Create POST : POST post/
 GET specific post : GET /post/{post_id}
 Like POST : POST /post/like
 get like: GET /post/like 
@@ -55,4 +50,8 @@ app.include_router(
 
 app.include_router(
     prefix="/api/v1/user", router=user_router, tags=["User"]
+)
+
+app.include_router(
+    prefix="/api/v1/post", router=post_router, tags=["Posts"]
 )

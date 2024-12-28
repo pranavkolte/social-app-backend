@@ -113,6 +113,15 @@ class Posts(db.Base):
                 return None
 
     @classmethod
+    def get_posts_by_user(cls, user_id: str):
+        with db.session() as session:
+            try:
+                posts = session.query(cls).filter_by(publisher_user_id=user_id).all()
+                return posts
+            except SQLAlchemyError:
+                return None
+
+    @classmethod
     def get_post(cls, filter: dict, use_or: bool = False):
         with db.session() as session:
             try:
