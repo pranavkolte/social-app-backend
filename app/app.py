@@ -8,7 +8,7 @@ from app.settings import settings
 
 
 def handle_startup():
-    db.create_engine(POSTGRES_URI=settings.POSTGRES_URI)
+    db.create_engine(DB_URI=settings.DB_URI)
     db.create_session()
 
 def handle_shutdown():

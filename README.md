@@ -1,8 +1,7 @@
 ```shell
+python -m venv .venv
+pip install -r requirements.txt
+alembic upgrade head
 uvicorn app:app --reload
 
-```
-```shell
-alembic revision --autogenerate -m "Initial migration"
-alembic upgrade head
 ```
