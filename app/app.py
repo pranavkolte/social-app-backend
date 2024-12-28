@@ -26,9 +26,6 @@ app = FastAPI(
 )
 
 """"
-comment on post : POST /post/{post_id}/comment
-GET comments : GET /comment/{comment_id}
-
 GET FEED : GET /feed: (pagination,the users they follow,Latest post on top) 
 
 Optional ------------------------
